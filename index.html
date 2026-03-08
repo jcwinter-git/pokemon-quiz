@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gen 1 Pokemon Name Quiz</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 6px;
+      color: #ffcc00;
+      text-shadow: 0 2px 8px rgba(255,200,0,0.4);
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #aaa;
+      margin-bottom: 24px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+    .stat { text-align: center; }
+    .stat-value { font-size: 1.4rem; font-weight: bold; color: #ffcc00; }
+    .stat-label { font-size: 0.75rem; color: #888; }
+
+    .progress-bar-wrap {
+      width: 100%;
+      max-width: 480px;
+      background: #2a2a4a;
+      border-radius: 999px;
+      height: 6px;
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #ffcc00, #ff9900);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .card {
+      background: #16213e;
+      border: 2px solid #0f3460;
+      border-radius: 20px;
+      padding: 32px 28px;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .pokemon-number {
+      font-size: 0.75rem;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .image-wrap {
+      width: 200px;
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .image-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(255,200,0,0.2));
+      transition: opacity 0.3s;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #2a2a4a;
+      border-top-color: #ffcc00;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      position: absolute;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid #0f3460;
+      border-radius: 12px;
+      background: #0d1b2a;
+      color: #eee;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: #ffcc00; }
+    input[type="text"].correct { border-color: #44cc66; background: #0a2a12; }
+    input[type="text"].wrong { border-color: #ee4444; background: #2a0a0a; }
+
+    button {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:active { transform: scale(0.96); }
+
+    .btn-submit { background: #ffcc00; color: #1a1a2e; }
+    .btn-submit:hover { background: #ffd633; }
+
+    .btn-pass { background: #2a2a4a; color: #aaa; }
+    .btn-pass:hover { background: #3a3a5a; color: #eee; }
+
+    .message {
+      min-height: 28px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .message.correct { color: #44cc66; }
+    .message.wrong { color: #ee4444; }
+    .message.pass { color: #888; }
+
+    .btn-row { display: flex; gap: 12px; width: 100%; }
+    .btn-row button { flex: 1; }
+
+    .finished { text-align: center; width: 100%; }
+    .finished h2 { font-size: 1.6rem; color: #ffcc00; margin-bottom: 16px; }
+
+    .fin-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .fin-stat {
+      background: #0d1b2a;
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .fin-stat-val { font-size: 1.5rem; font-weight: bold; color: #ffcc00; }
+    .fin-stat-lbl { font-size: 0.75rem; color: #888; margin-top: 2px; }
+
+    .fin-lists {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .fin-list h3 { font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .fin-list.got-right h3 { color: #44cc66; }
+    .fin-list.revealed h3 { color: #ee4444; }
+    .fin-list ul { list-style: none; }
+    .fin-list ul li { font-size: 0.8rem; color: #ccc; padding: 2px 0; }
+
+    .btn-pdf {
+      background: #0f3460;
+      color: #ffcc00;
+      border: 2px solid #ffcc00;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+    .btn-pdf:hover { background: #1a4a80; }
+
+    .btn-restart {
+      background: #ffcc00;
+      color: #1a1a2e;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+    }
+    .btn-restart:hover { background: #ffd633; }
+
+    /* ── Print / PDF styles ─────────────────────────────────────────────── */
+
+    #print-report { display: none; }
+
+    @media print {
+      body { background: #fff; color: #111; padding: 0; align-items: flex-start; }
+      h1, .subtitle, .stats, .progress-bar-wrap, #game-card { display: none !important; }
+      #print-report { display: block; width: 100%; font-family: 'Segoe UI', sans-serif; color: #111; }
+
+      .pr-header { text-align: center; margin-bottom: 24px; border-bottom: 3px solid #ffcc00; padding-bottom: 16px; }
+      .pr-header h1 { font-size: 1.6rem; color: #111; text-shadow: none; margin-bottom: 4px; }
+      .pr-header p { font-size: 0.85rem; color: #555; }
+
+      .pr-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 24px;
+        text-align: center;
+      }
+      .pr-stat {
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        padding: 12px 8px;
+      }
+      .pr-stat-val { font-size: 1.6rem; font-weight: bold; color: #111; }
+      .pr-stat-lbl { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+      .pr-lists {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .pr-list h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 2px solid; }
+      .pr-list.correct h2 { color: #1a7a3a; border-color: #1a7a3a; }
+      .pr-list.revealed h2 { color: #cc2222; border-color: #cc2222; }
+      .pr-list ul { list-style: none; columns: 2; column-gap: 16px; }
+      .pr-list ul li { font-size: 0.8rem; padding: 2px 0; break-inside: avoid; }
+      .pr-list.correct ul li::before { content: '\2713  '; color: #1a7a3a; font-weight: bold; }
+      .pr-list.revealed ul li::before { content: '\2717  '; color: #cc2222; font-weight: bold; }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Who's That Pokemon?</h1>
+<p class="subtitle">Gen 1 &mdash; Type the name and press Enter or Submit</p>
+
+<div class="stats">
+  <div class="stat">
+    <div class="stat-value" id="score">0</div>
+    <div class="stat-label">Correct</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="skipped">0</div>
+    <div class="stat-label">Skipped</div>
+  </div>
+  <div class="stat">
+    <div class="stat-value" id="remaining">150</div>
+    <div class="stat-label">Remaining</div>
+  </div>
+</div>
+
+<div class="progress-bar-wrap">
+  <div class="progress-bar" id="progress" style="width:0%"></div>
+</div>
+
+<div class="card" id="game-card">
+  <div class="pokemon-number" id="pokemon-number">#???</div>
+  <div class="image-wrap">
+    <div class="spinner" id="spinner"></div>
+    <img id="pokemon-img" src="" alt="Pokemon" style="opacity:0" />
+  </div>
+  <div class="input-row">
+    <input type="text" id="name-input" placeholder="Pokemon name..." autocomplete="off" autocorrect="off" spellcheck="false" />
+    <button class="btn-submit" id="submit-btn">Submit</button>
+  </div>
+  <div class="btn-row">
+    <button class="btn-pass" id="pass-btn">Skip</button>
+  </div>
+  <div class="message" id="message"></div>
+</div>
+
+<!-- Hidden print report — populated at game end -->
+<div id="print-report"></div>
+
+<script>
+  const POKEMON = [
+    { id: 1,   name: "Bulbasaur" },
+    { id: 2,   name: "Ivysaur" },
+    { id: 3,   name: "Venusaur" },
+    { id: 4,   name: "Charmander" },
+    { id: 5,   name: "Charmeleon" },
+    { id: 6,   name: "Charizard" },
+    { id: 7,   name: "Squirtle" },
+    { id: 8,   name: "Wartortle" },
+    { id: 9,   name: "Blastoise" },
+    { id: 10,  name: "Caterpie" },
+    { id: 11,  name: "Metapod" },
+    { id: 12,  name: "Butterfree" },
+    { id: 13,  name: "Weedle" },
+    { id: 14,  name: "Kakuna" },
+    { id: 15,  name: "Beedrill" },
+    { id: 16,  name: "Pidgey" },
+    { id: 17,  name: "Pidgeotto" },
+    { id: 18,  name: "Pidgeot" },
+    { id: 19,  name: "Rattata" },
+    { id: 20,  name: "Raticate" },
+    { id: 21,  name: "Spearow" },
+    { id: 22,  name: "Fearow" },
+    { id: 23,  name: "Ekans" },
+    { id: 24,  name: "Arbok" },
+    { id: 25,  name: "Pikachu" },
+    { id: 26,  name: "Raichu" },
+    { id: 27,  name: "Sandshrew" },
+    { id: 28,  name: "Sandslash" },
+    { id: 29,  name: "Nidoran F", alts: ["nidoran", "nidoranf", "nidoran-f", "nidoran female"] },
+    { id: 30,  name: "Nidorina" },
+    { id: 31,  name: "Nidoqueen" },
+    { id: 32,  name: "Nidoran M", alts: ["nidoran", "nidoranm", "nidoran-m", "nidoran male"] },
+    { id: 33,  name: "Nidorino" },
+    { id: 34,  name: "Nidoking" },
+    { id: 35,  name: "Clefairy" },
+    { id: 36,  name: "Clefable" },
+    { id: 37,  name: "Vulpix" },
+    { id: 38,  name: "Ninetales" },
+    { id: 39,  name: "Jigglypuff" },
+    { id: 40,  name: "Wigglytuff" },
+    { id: 41,  name: "Zubat" },
+    { id: 42,  name: "Golbat" },
+    { id: 43,  name: "Oddish" },
+    { id: 44,  name: "Gloom" },
+    { id: 45,  name: "Vileplume" },
+    { id: 46,  name: "Paras" },
+    { id: 47,  name: "Parasect" },
+    { id: 48,  name: "Venonat" },
+    { id: 49,  name: "Venomoth" },
+    { id: 50,  name: "Diglett" },
+    { id: 51,  name: "Dugtrio" },
+    { id: 52,  name: "Meowth" },
+    { id: 53,  name: "Persian" },
+    { id: 54,  name: "Psyduck" },
+    { id: 55,  name: "Golduck" },
+    { id: 56,  name: "Mankey" },
+    { id: 57,  name: "Primeape" },
+    { id: 58,  name: "Growlithe" },
+    { id: 59,  name: "Arcanine" },
+    { id: 60,  name: "Poliwag" },
+    { id: 61,  name: "Poliwhirl" },
+    { id: 62,  name: "Poliwrath" },
+    { id: 63,  name: "Abra" },
+    { id: 64,  name: "Kadabra" },
+    { id: 65,  name: "Alakazam" },
+    { id: 66,  name: "Machop" },
+    { id: 67,  name: "Machoke" },
+    { id: 68,  name: "Machamp" },
+    { id: 69,  name: "Bellsprout" },
+    { id: 70,  name: "Weepinbell" },
+    { id: 71,  name: "Victreebel" },
+    { id: 72,  name: "Tentacool" },
+    { id: 73,  name: "Tentacruel" },
+    { id: 74,  name: "Geodude" },
+    { id: 75,  name: "Graveler" },
+    { id: 76,  name: "Golem" },
+    { id: 77,  name: "Ponyta" },
+    { id: 78,  name: "Rapidash" },
+    { id: 79,  name: "Slowpoke" },
+    { id: 80,  name: "Slowbro" },
+    { id: 81,  name: "Magnemite" },
+    { id: 82,  name: "Magneton" },
+    { id: 83,  name: "Farfetch'd", alts: ["farfetchd", "farfetched", "farfetch d"] },
+    { id: 84,  name: "Doduo" },
+    { id: 85,  name: "Dodrio" },
+    { id: 86,  name: "Seel" },
+    { id: 87,  name: "Dewgong" },
+    { id: 88,  name: "Grimer" },
+    { id: 89,  name: "Muk" },
+    { id: 90,  name: "Shellder" },
+    { id: 91,  name: "Cloyster" },
+    { id: 92,  name: "Gastly" },
+    { id: 93,  name: "Haunter" },
+    { id: 94,  name: "Gengar" },
+    { id: 95,  name: "Onix" },
+    { id: 96,  name: "Drowzee" },
+    { id: 97,  name: "Hypno" },
+    { id: 98,  name: "Krabby" },
+    { id: 99,  name: "Kingler" },
+    { id: 100, name: "Voltorb" },
+    { id: 101, name: "Electrode" },
+    { id: 102, name: "Exeggcute" },
+    { id: 103, name: "Exeggutor" },
+    { id: 104, name: "Cubone" },
+    { id: 105, name: "Marowak" },
+    { id: 106, name: "Hitmonlee" },
+    { id: 107, name: "Hitmonchan" },
+    { id: 108, name: "Lickitung" },
+    { id: 109, name: "Koffing" },
+    { id: 110, name: "Weezing" },
+    { id: 111, name: "Rhyhorn" },
+    { id: 112, name: "Rhydon" },
+    { id: 113, name: "Chansey" },
+    { id: 114, name: "Tangela" },
+    { id: 115, name: "Kangaskhan" },
+    { id: 116, name: "Horsea" },
+    { id: 117, name: "Seadra" },
+    { id: 118, name: "Goldeen" },
+    { id: 119, name: "Seaking" },
+    { id: 120, name: "Staryu" },
+    { id: 121, name: "Starmie" },
+    { id: 122, name: "Mr. Mime", alts: ["mr mime", "mrmime", "mistermime"] },
+    { id: 123, name: "Scyther" },
+    { id: 124, name: "Jynx" },
+    { id: 125, name: "Electabuzz" },
+    { id: 126, name: "Magmar" },
+    { id: 127, name: "Pinsir" },
+    { id: 128, name: "Tauros" },
+    { id: 129, name: "Magikarp" },
+    { id: 130, name: "Gyarados" },
+    { id: 131, name: "Lapras" },
+    { id: 132, name: "Ditto" },
+    { id: 133, name: "Eevee" },
+    { id: 134, name: "Vaporeon" },
+    { id: 135, name: "Jolteon" },
+    { id: 136, name: "Flareon" },
+    { id: 137, name: "Porygon" },
+    { id: 138, name: "Omanyte" },
+    { id: 139, name: "Omastar" },
+    { id: 140, name: "Kabuto" },
+    { id: 141, name: "Kabutops" },
+    { id: 142, name: "Aerodactyl" },
+    { id: 143, name: "Snorlax" },
+    { id: 144, name: "Articuno" },
+    { id: 145, name: "Zapdos" },
+    { id: 146, name: "Moltres" },
+    { id: 147, name: "Dratini" },
+    { id: 148, name: "Dragonair" },
+    { id: 149, name: "Dragonite" },
+    { id: 150, name: "Mewtwo" },
+  ];
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function levenshtein(a, b) {
+    var m = a.length, n = b.length;
+    var dp = [];
+    for (var i = 0; i <= m; i++) {
+      dp[i] = [];
+      for (var j = 0; j <= n; j++)
+        dp[i][j] = i === 0 ? j : j === 0 ? i : 0;
+    }
+    for (var i = 1; i <= m; i++)
+      for (var j = 1; j <= n; j++)
+        dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1]
+                 : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[m][n];
+  }
+
+  function normalize(s) {
+    return s.toLowerCase().trim().replace(/['.!\-]/g, '').replace(/\s+/g, ' ');
+  }
+
+  function isCorrect(guess, pokemon) {
+    var g = normalize(guess);
+    if (!g) return false;
+    if (levenshtein(g, normalize(pokemon.name)) <= 1) return true;
+    if (pokemon.alts) {
+      for (var i = 0; i < pokemon.alts.length; i++)
+        if (levenshtein(g, normalize(pokemon.alts[i])) <= 1) return true;
+    }
+    return false;
+  }
+
+  function get(id) { return document.getElementById(id); }
+
+  function imageUrl(id) {
+    return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + id + '.png';
+  }
+
+  function pad(n) { return String(n).padStart(3, '0'); }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+
+  var TOTAL = 150;
+  var queue      = [];
+  var passedOnce = [];
+  var round      = 1;
+  var current    = null;
+  var score      = 0;
+  var resolved   = 0;
+  var wrongGuesses    = 0;   // total wrong-answer attempts
+  var firstPassTotal  = 0;   // how many entered round 2
+  var secondPassTotal = 0;   // how many were revealed (skipped twice)
+  var correctList  = [];     // [{id, name}] answered correctly
+  var revealedList = [];     // [{id, name}] revealed by second skip
+  var waitingForNext = false;
+
+  // ── UI ────────────────────────────────────────────────────────────────────
+
+  function updateStats() {
+    get('score').textContent     = score;
+    get('skipped').textContent   = passedOnce.length;
+    get('remaining').textContent = queue.length + (current ? 1 : 0);
+    get('progress').style.width  = (resolved / TOTAL * 100) + '%';
+  }
+
+  function showMsg(text, type) {
+    var el = get('message');
+    el.textContent = text;
+    el.className = 'message ' + (type || '');
+  }
+
+  function rebindCard() {
+    get('submit-btn').addEventListener('click', handleSubmit);
+    get('pass-btn').addEventListener('click', handlePass);
+    get('name-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') handleSubmit();
+    });
+  }
+
+  function loadPokemon(pokemon) {
+    current = pokemon;
+    waitingForNext = false;
+
+    var imgEl = get('pokemon-img');
+    var spEl  = get('spinner');
+    imgEl.style.opacity = '0';
+    spEl.style.display = 'block';
+    get('pokemon-number').textContent = '#' + pad(pokemon.id);
+
+    imgEl.onload = imgEl.onerror = function() {
+      spEl.style.display = 'none';
+      imgEl.style.opacity = '1';
+    };
+    imgEl.src = imageUrl(pokemon.id);
+
+    var inp = get('name-input');
+    inp.value = '';
+    inp.className = '';
+    inp.disabled = false;
+    get('submit-btn').disabled = false;
+    get('pass-btn').textContent = 'Skip';
+    showMsg('', '');
+    inp.focus();
+    updateStats();
+  }
+
+  // ── Round transitions ─────────────────────────────────────────────────────
+
+  function startRound2() {
+    round = 2;
+    firstPassTotal = passedOnce.length;
+    queue = passedOnce.slice();
+    passedOnce = [];
+    var n = queue.length;
+    get('submit-btn').disabled = true;
+    get('pass-btn').disabled   = true;
+    showMsg('Round 2 — reviewing ' + n + ' skipped Pokemon. Skip again to reveal the answer!', 'pass');
+    setTimeout(function() {
+      get('submit-btn').disabled = false;
+      get('pass-btn').disabled   = false;
+      nextPokemon();
+    }, 2200);
+  }
+
+  function buildPrintReport() {
+    var date = new Date().toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
+
+    var correctItems = correctList.map(function(p) {
+      return '<li>#' + pad(p.id) + ' ' + p.name + '</li>';
+    }).join('');
+
+    var revealedItems = revealedList.map(function(p) {
+      return '<li>#' + pad(p.id) + ' ' + p.name + '</li>';
+    }).join('');
+
+    return (
+      '<div class="pr-header">' +
+        '<h1>Gen 1 Pokemon Quiz — Results</h1>' +
+        '<p>' + date + '</p>' +
+      '</div>' +
+      '<div class="pr-stats">' +
+        '<div class="pr-stat"><div class="pr-stat-val">' + score + '</div><div class="pr-stat-lbl">Correct</div></div>' +
+        '<div class="pr-stat"><div class="pr-stat-val">' + firstPassTotal + '</div><div class="pr-stat-lbl">First Skips</div></div>' +
+        '<div class="pr-stat"><div class="pr-stat-val">' + wrongGuesses + '</div><div class="pr-stat-lbl">Wrong Attempts</div></div>' +
+        '<div class="pr-stat"><div class="pr-stat-val">' + secondPassTotal + '</div><div class="pr-stat-lbl">Revealed</div></div>' +
+      '</div>' +
+      '<div class="pr-lists">' +
+        '<div class="pr-list correct">' +
+          '<h2>Got Right (' + correctList.length + ')</h2>' +
+          '<ul>' + (correctItems || '<li>None</li>') + '</ul>' +
+        '</div>' +
+        '<div class="pr-list revealed">' +
+          '<h2>Revealed (' + revealedList.length + ')</h2>' +
+          '<ul>' + (revealedItems || '<li>None</li>') + '</ul>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function showFinished() {
+    current = null;
+
+    // Populate hidden print report
+    get('print-report').innerHTML = buildPrintReport();
+
+    // Build on-screen finished card
+    var correctItems = correctList.map(function(p) {
+      return '<li>#' + pad(p.id) + ' ' + p.name + '</li>';
+    }).join('');
+    var revealedItems = revealedList.map(function(p) {
+      return '<li>#' + pad(p.id) + ' ' + p.name + '</li>';
+    }).join('');
+
+    get('game-card').innerHTML =
+      '<div class="finished">' +
+        '<h2>All done!</h2>' +
+        '<div class="fin-stats">' +
+          '<div class="fin-stat"><div class="fin-stat-val">' + score + '</div><div class="fin-stat-lbl">Correct</div></div>' +
+          '<div class="fin-stat"><div class="fin-stat-val">' + firstPassTotal + '</div><div class="fin-stat-lbl">First Skips</div></div>' +
+          '<div class="fin-stat"><div class="fin-stat-val">' + wrongGuesses + '</div><div class="fin-stat-lbl">Wrong Attempts</div></div>' +
+          '<div class="fin-stat"><div class="fin-stat-val">' + secondPassTotal + '</div><div class="fin-stat-lbl">Revealed</div></div>' +
+        '</div>' +
+        '<div class="fin-lists">' +
+          '<div class="fin-list got-right"><h3>Got Right (' + correctList.length + ')</h3><ul>' + (correctItems || '<li>—</li>') + '</ul></div>' +
+          '<div class="fin-list revealed"><h3>Revealed (' + revealedList.length + ')</h3><ul>' + (revealedItems || '<li>—</li>') + '</ul></div>' +
+        '</div>' +
+        '<button class="btn-pdf" onclick="window.print()">Save as PDF</button><br>' +
+        '<button class="btn-restart" onclick="startGame()">Play Again</button>' +
+      '</div>';
+  }
+
+  function nextPokemon() {
+    if (queue.length === 0) {
+      if (round === 1 && passedOnce.length > 0) {
+        startRound2();
+      } else {
+        showFinished();
+      }
+      return;
+    }
+    loadPokemon(queue.shift());
+  }
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  function handleSubmit() {
+    if (waitingForNext) { nextPokemon(); return; }
+    var guess = get('name-input').value.trim();
+    if (!guess) return;
+
+    if (isCorrect(guess, current)) {
+      score++;
+      resolved++;
+      correctList.push({ id: current.id, name: current.name });
+      get('name-input').className = 'correct';
+      showMsg('Correct! ' + current.name, 'correct');
+      get('name-input').disabled = true;
+      get('submit-btn').disabled = true;
+      get('pass-btn').textContent = 'Next';
+      waitingForNext = true;
+      updateStats();
+    } else {
+      wrongGuesses++;
+      get('name-input').className = 'wrong';
+      showMsg('Not quite — try again or skip!', 'wrong');
+      setTimeout(function() { get('name-input').className = ''; }, 600);
+    }
+  }
+
+  function handlePass() {
+    if (waitingForNext) { nextPokemon(); return; }
+
+    get('name-input').disabled = true;
+    get('submit-btn').disabled = true;
+
+    if (round === 1) {
+      passedOnce.push(current);
+      showMsg('Skipped.', 'pass');
+      updateStats();
+      setTimeout(nextPokemon, 500);
+    } else {
+      // Second skip — reveal
+      secondPassTotal++;
+      resolved++;
+      revealedList.push({ id: current.id, name: current.name });
+      showMsg('It was: ' + current.name, 'pass');
+      updateStats();
+      setTimeout(nextPokemon, 1600);
+    }
+  }
+
+  // ── Start ─────────────────────────────────────────────────────────────────
+
+  function startGame() {
+    score           = 0;
+    resolved        = 0;
+    wrongGuesses    = 0;
+    firstPassTotal  = 0;
+    secondPassTotal = 0;
+    correctList     = [];
+    revealedList    = [];
+    round           = 1;
+    queue           = POKEMON.slice();
+    passedOnce      = [];
+    current         = null;
+    waitingForNext  = false;
+    get('print-report').innerHTML = '';
+
+    if (!get('name-input')) {
+      get('game-card').innerHTML =
+        '<div class="pokemon-number" id="pokemon-number">#???</div>' +
+        '<div class="image-wrap">' +
+          '<div class="spinner" id="spinner"></div>' +
+          '<img id="pokemon-img" src="" alt="Pokemon" style="opacity:0" />' +
+        '</div>' +
+        '<div class="input-row">' +
+          '<input type="text" id="name-input" placeholder="Pokemon name..." autocomplete="off" autocorrect="off" spellcheck="false" />' +
+          '<button class="btn-submit" id="submit-btn">Submit</button>' +
+        '</div>' +
+        '<div class="btn-row">' +
+          '<button class="btn-pass" id="pass-btn">Skip</button>' +
+        '</div>' +
+        '<div class="message" id="message"></div>';
+      rebindCard();
+    }
+
+    nextPokemon();
+  }
+
+  rebindCard();
+  startGame();
+</script>
+</body>
+</html>
